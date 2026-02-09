@@ -123,10 +123,4 @@ phishguard/
 └── README.md                # Project Documentation
 ```
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 *Note: This project is for educational and defensive security purposes only.*
