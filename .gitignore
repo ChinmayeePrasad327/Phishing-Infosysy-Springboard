@@ -1,0 +1,54 @@
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Databases
+*.db
+*.sqlite3
+
+# Models & Data (Exclude large datasets)
+*.csv
+!final_phishing_url_dataset.csv # Optional: Only if you want to keep the small cleaned version
+*.pkl
+backend/model/*.pkl
+
+# Environment
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+
+# Agentic / Debugging
+.gemini/
+brain/
+debug_*.py
+validate_*.py
+inspect_model.py
+test_*.py
+
+outputs/
+.vite/

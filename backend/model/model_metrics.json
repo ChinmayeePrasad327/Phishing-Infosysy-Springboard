@@ -1,0 +1,21 @@
+{
+    "best_model": "RandomForestClassifier",
+    "results": [
+        {
+            "model": "Logistic Regression",
+            "f1": 0.5854,
+            "accuracy": 0.4512
+        },
+        {
+            "model": "Decision Tree",
+            "f1": 0.7141,
+            "accuracy": 0.5854
+        },
+        {
+            "model": "Random Forest",
+            "f1": 0.6960,
+            "accuracy": 0.6061
+        }
+    ],
+    "selection_reason": "Random Forest was selected for production due to superior accuracy and balanced precision-recall performance in phishing detection."
+}
