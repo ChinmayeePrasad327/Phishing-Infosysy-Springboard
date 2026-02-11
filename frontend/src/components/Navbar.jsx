@@ -64,7 +64,11 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2 group">
+                    <Link
+                        to="/"
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        className="flex items-center space-x-2 group"
+                    >
                         <div className="p-2 bg-accent-ai/20 rounded-lg group-hover:bg-accent-ai/40 transition-colors">
                             <Shield className="w-8 h-8 text-accent-ai" />
                         </div>
@@ -79,6 +83,7 @@ const Navbar = () => {
                             <Link
                                 key={link.name}
                                 to={link.path}
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                                 className={`text-sm font-medium transition-colors ${location.pathname === link.path
                                     ? 'text-accent-ai'
                                     : 'text-gray-600 dark:text-gray-300 hover:text-accent-ai'
@@ -100,7 +105,10 @@ const Navbar = () => {
                         {user ? (
                             <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-200 dark:border-white/10">
                                 <button
-                                    onClick={() => navigate(ROUTES.DETECT)}
+                                    onClick={() => {
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        navigate(ROUTES.DETECT);
+                                    }}
                                     className="px-5 py-2 bg-accent-ai hover:bg-accent-ai/90 text-white text-xs font-bold rounded-full transition-all flex items-center space-x-2 shadow-lg shadow-accent-ai/20"
                                 >
                                     <Zap size={14} fill="currentColor" />

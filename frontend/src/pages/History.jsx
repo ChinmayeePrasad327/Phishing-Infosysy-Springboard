@@ -105,7 +105,10 @@ const History = () => {
                         <h3 className="text-xl font-bold dark:text-white mb-2">No scans found</h3>
                         <p className="text-gray-500 mb-8">You haven't performed any suspicious URL analyses yet.</p>
                         <button
-                            onClick={() => navigate(ROUTES.DETECT)}
+                            onClick={() => {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                navigate(ROUTES.DETECT);
+                            }}
                             className="px-8 py-3 bg-accent-ai text-white rounded-xl font-bold hover:bg-accent-ai/90 transition-all"
                         >
                             Start First Scan
@@ -140,9 +143,6 @@ const History = () => {
                                         <p className="text-sm font-mono dark:text-white">{(item.confidence * 100).toFixed(1)}%</p>
                                     </div>
                                     {getRiskBadge(item.prediction)}
-                                    <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 transition-colors">
-                                        <ChevronRight size={20} />
-                                    </button>
                                 </div>
                             </div>
                         ))}

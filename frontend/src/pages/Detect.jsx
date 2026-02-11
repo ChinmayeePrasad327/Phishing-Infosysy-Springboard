@@ -16,10 +16,12 @@ const Detect = () => {
     const [mode, setMode] = useState(UI_MODES.IDLE);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
+    const [showSignals, setShowSignals] = useState(false);
     const navigate = useNavigate();
 
     const containerRef = useRef(null);
     const resultRef = useRef(null);
+    const signalsRef = useRef(null);
 
     useEffect(() => {
         // Login-First Enforcement
@@ -30,6 +32,21 @@ const Detect = () => {
         gsap.fromTo(containerRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1, ease: 'expo.out' });
     }, [navigate, user]);
 
+    useEffect(() => {
+        if (signalsRef.current) {
+            if (showSignals) {
+                gsap.fromTo(signalsRef.current,
+                    { height: 0, opacity: 0, marginTop: 0 },
+                    { height: 'auto', opacity: 1, marginTop: 24, duration: 0.5, ease: 'power3.out' }
+                );
+            } else {
+                gsap.to(signalsRef.current,
+                    { height: 0, opacity: 0, marginTop: 0, duration: 0.4, ease: 'power3.in' }
+                );
+            }
+        }
+    }, [showSignals]);
+
     const handleDetect = async (e) => {
         e.preventDefault();
         if (!url) return;
@@ -37,6 +54,7 @@ const Detect = () => {
         setMode(UI_MODES.LOADING);
         setResult(null);
         setError(null);
+        setShowSignals(false);
 
         try {
             const data = await apiService.predictURL(url);
@@ -45,7 +63,7 @@ const Detect = () => {
             // Map prediction to UI Mode
             let uiMode = UI_MODES.SAFE;
             if (data.prediction === 'phishing') uiMode = UI_MODES.DANGER;
-            else if (data.prediction === 'suspicious') uiMode = 'suspicious'; // Custom mode for amber
+            else if (data.prediction === 'suspicious') uiMode = 'suspicious';
 
             setMode(uiMode);
 
@@ -76,7 +94,9 @@ const Detect = () => {
         setUrl('');
         setMode(UI_MODES.IDLE);
         setResult(null);
+        setShowSignals(false);
         gsap.to('.detect-bg', { backgroundColor: 'transparent', duration: 0.5 });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const getRiskConfig = (prediction) => {
@@ -87,8 +107,9 @@ const Detect = () => {
                     bgColor: 'bg-red-500/10',
                     borderColor: 'border-red-500/30',
                     icon: <ShieldAlert size={48} className="text-red-500" />,
-                    title: 'HIGH RISK',
-                    desc: 'Predicted phishing intent. This URL matches malicious behavioral clusters.',
+                    title: 'MALICIOUS SITE BLOCKED',
+                    desc: 'Predicted phishing intent. URL matches verified malicious behavioral clusters.',
+                    guidance: 'HIGH RISK DETECTED. This site shows strong indicators of phishing. Close this page immediately and do not proceed with any interaction.',
                     shadow: 'shadow-red-500/20'
                 };
             case 'suspicious':
@@ -97,8 +118,9 @@ const Detect = () => {
                     bgColor: 'bg-amber-500/10',
                     borderColor: 'border-amber-500/30',
                     icon: <AlertTriangle size={48} className="text-amber-500" />,
-                    title: 'MEDIUM RISK',
-                    desc: 'Ambiguous patterns detected. Proceed with caution.',
+                    title: 'SUSPICIOUS ACTIVITY DETECTED',
+                    desc: 'Ambiguous patterns detected. Neural analysis flagged low-credibility signals.',
+                    guidance: 'Our neural model detected unusual patterns. We recommend avoiding entering any sensitive information or credentials on this site.',
                     shadow: 'shadow-amber-500/20'
                 };
             default:
@@ -107,8 +129,9 @@ const Detect = () => {
                     bgColor: 'bg-green-500/10',
                     borderColor: 'border-green-500/30',
                     icon: <ShieldCheck size={48} className="text-green-500" />,
-                    title: 'LOW RISK',
-                    desc: 'No known malicious patterns detected.',
+                    title: 'CLEAN SCAN RESULT',
+                    desc: 'No known malicious patterns identified by our security policy engine.',
+                    guidance: 'This URL appears to be safe. You can proceed with confidence, but always stay vigilant for subtle changes in site behavior.',
                     shadow: 'shadow-green-500/20'
                 };
         }
@@ -164,77 +187,85 @@ const Detect = () => {
 
                 {/* Result States */}
                 {result && (
-                    <div ref={resultRef} className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                    <div ref={resultRef} className="space-y-6">
                         {/* Verdict Card */}
                         {(() => {
                             const config = getRiskConfig(result.prediction);
                             return (
-                                <div className={`p-10 rounded-3xl border transition-all duration-500 ${config.bgColor} ${config.borderColor} ${config.shadow} backdrop-blur-md`}>
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-                                        <div className="flex items-center space-x-6">
-                                            <div className={`p-5 rounded-2xl bg-white dark:bg-black/20 shadow-inner`}>
-                                                {config.icon}
+                                <div className={`p-8 md:p-10 rounded-3xl border transition-all duration-500 ${config.bgColor} ${config.borderColor} ${config.shadow} backdrop-blur-md`}>
+                                    <div className="flex flex-col gap-8 relative z-10">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                            <div className="flex items-center space-x-6">
+                                                <div className={`p-5 rounded-2xl bg-white dark:bg-black/20 shadow-inner flex shrink-0`}>
+                                                    {config.icon}
+                                                </div>
+                                                <div>
+                                                    <h2 className={`text-3xl font-black mb-1 ${config.color} tracking-tight uppercase`}>
+                                                        {config.title}
+                                                    </h2>
+                                                    <p className="dark:text-gray-300 text-gray-700 font-semibold">{config.desc}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h2 className={`text-3xl font-bold mb-1 ${config.color} tracking-tight`}>
-                                                    {config.title}
-                                                </h2>
-                                                <p className="dark:text-gray-300 text-gray-500 font-medium">{config.desc}</p>
+
+                                            <div className="text-center px-8 py-4 bg-white/50 dark:bg-black/40 rounded-2xl border border-gray-200 dark:border-white/5 backdrop-blur-md max-sm:w-fit">
+                                                <p className="text-gray-500 text-[10px] uppercase tracking-widest font-black mb-1">Neural Confidence</p>
+                                                <p className={`text-3xl font-bold dark:text-white text-gray-900 font-mono`}>
+                                                    {(result.confidence * 100).toFixed(1)}%
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="text-center px-10 py-4 bg-white/50 dark:bg-black/40 rounded-2xl border border-gray-200 dark:border-white/5 backdrop-blur-md">
-                                            <p className="text-gray-500 text-xs uppercase tracking-widest font-black mb-1">Risk Confidence</p>
-                                            <p className={`text-4xl font-bold dark:text-white text-gray-900 font-mono`}>
-                                                {(result.confidence * 100).toFixed(1)}%
-                                            </p>
+                                        {/* Guidance Message - Progressive Disclosure Focus */}
+                                        <div className="p-6 bg-white/40 dark:bg-black/20 rounded-2xl border border-white/20">
+                                            <div className="flex items-start space-x-4">
+                                                <div className={`mt-1 ${config.color}`}>
+                                                    <Info size={20} />
+                                                </div>
+                                                <p className="text-gray-800 dark:text-gray-200 leading-relaxed font-medium">
+                                                    {config.guidance}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between border-t border-black/5 dark:border-white/5 pt-6">
+                                            <button
+                                                onClick={() => setShowSignals(!showSignals)}
+                                                className="flex items-center space-x-2 text-sm font-bold text-gray-500 hover:text-accent-ai transition-colors"
+                                            >
+                                                <Activity size={16} />
+                                                <span>{showSignals ? 'Hide technical analysis' : 'Show technical analysis'}</span>
+                                                <ChevronRight size={16} className={`transition-transform duration-300 ${showSignals ? 'rotate-90' : ''}`} />
+                                            </button>
+
+                                            <button onClick={reset} className="px-6 py-2 bg-black/5 dark:bg-white/5 dark:text-white rounded-xl text-sm font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-all flex items-center space-x-2">
+                                                <Sparkles size={14} className="text-accent-ai" />
+                                                <span>New Analysis</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Collapsible Technical Analysis */}
+                                    <div ref={signalsRef} className="overflow-hidden h-0 opacity-0">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {result.features && Object.entries(result.features).map(([key, value]) => (
+                                                <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+                                                    <span className="text-gray-600 dark:text-gray-400 capitalize text-xs font-medium">{key.replace(/_/g, ' ')}</span>
+                                                    <span className={`font-mono text-[10px] px-2 py-0.5 rounded ${typeof value === 'boolean'
+                                                        ? (value ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20')
+                                                        : 'bg-black/10 dark:bg-white/10 dark:text-white text-gray-700'
+                                                        }`}>
+                                                        {typeof value === 'boolean' ? (value ? 'ALERT' : 'PASS') : value}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="mt-4 p-4 rounded-xl bg-accent-ai/5 border border-accent-ai/10 text-[11px] text-gray-500 italic text-center">
+                                            Detailed signal analysis is provided for security researchers and technical validation.
                                         </div>
                                     </div>
                                 </div>
                             );
                         })()}
-
-                        {/* Feature Breakdown Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white dark:bg-secondary/50 p-8 rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm">
-                                <h3 className="flex items-center space-x-2 text-xl font-bold mb-8 dark:text-white">
-                                    <Cpu className="text-accent-ai" />
-                                    <span>Signal Analysis</span>
-                                </h3>
-                                <div className="space-y-4">
-                                    {result.features && Object.entries(result.features).map(([key, value]) => (
-                                        <div key={key} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
-                                            <span className="text-gray-500 dark:text-gray-400 capitalize text-sm">{key.replace(/_/g, ' ')}</span>
-                                            <span className={`font-mono text-xs px-2 py-1 rounded bg-gray-50 dark:bg-white/5 ${typeof value === 'boolean'
-                                                ? (value ? 'text-red-500' : 'text-green-500')
-                                                : 'dark:text-white text-gray-700'
-                                                }`}>
-                                                {typeof value === 'boolean' ? (value ? 'ALERT' : 'PASS') : value}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="bg-white dark:bg-secondary/50 p-8 rounded-3xl border border-gray-200 dark:border-white/5 shadow-sm">
-                                <h3 className="text-xl font-bold mb-8 flex items-center space-x-2 dark:text-white">
-                                    <Activity className="text-accent-ai" />
-                                    <span>Security Insight</span>
-                                </h3>
-                                <div className="p-6 bg-gray-50 dark:bg-primary/40 rounded-2xl border border-gray-100 dark:border-white/5 space-y-4">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed italic">
-                                        "{result.policy_note || "Neural analysis complete. Result based on calibrated security policy."}"
-                                    </p>
-                                    <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-white/5 mt-4">
-                                        <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">v3.1 Production</span>
-                                        <button onClick={reset} className="text-accent-ai hover:underline text-sm font-bold flex items-center space-x-1">
-                                            <span>New Scan</span>
-                                            <ChevronRight size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>
